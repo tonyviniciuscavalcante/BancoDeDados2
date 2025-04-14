@@ -961,26 +961,172 @@ SELECT * FROM atleta WHERE id = 111;
 atletas e, para cada atleta, liste o seu id, nome, cpf
 e salário, e se ganha acima ou não da média salarial
 dos atletas.*/ 
+DECLARE
+  v_media NUMBER;
+  CURSOR c1 IS SELECT id, nome, cpf, salario FROM ATLETA;
 
+BEGIN
+  -- Seleciona e imprime a m�dia salarial
+  SELECT AVG(salario) INTO v_media FROM atleta;
+  DBMS_OUTPUT.PUT_LINE('M�dia salarial dos atletas: ' || TO_CHAR(v_media,'$999,990.00'));
+    
+  -- Percorre o cursor comparando com a m�dia salarial
+  FOR v_atl IN c1 LOOP
+    IF v_atl.salario > v_media THEN
+      DBMS_OUTPUT.PUT_LINE('Atleta de ID ' || v_atl.id || ', nome ' || v_atl.nome ||
+        ', CPF ' || v_atl.cpf || ', sal�rio ' || v_atl.salario ||
+        ' ganha MAIS que a m�dia salarial dos atletas.');
+    ELSIF v_atl.salario < v_media THEN
+      DBMS_OUTPUT.PUT_LINE('Atleta de ID ' || v_atl.id || ', nome ' || v_atl.nome ||
+        ', CPF ' || v_atl.cpf || ', sal�rio ' || v_atl.salario ||
+        ' ganha MENOS que a m�dia salarial dos atletas.');
+    ELSE
+      DBMS_OUTPUT.PUT_LINE('Atleta de ID ' || v_atl.id || ', nome ' || v_atl.nome ||
+        ', CPF ' || v_atl.cpf || ', sal�rio ' || v_atl.salario ||
+        ' ganha igual � m�dia salarial dos atletas.');
+    END IF;
+  END LOOP;
+END;
+
+DECLARE
+  v_media NUMBER;
+  v_id      atleta.id%type;
+  v_nome    atleta.nome%type;
+  v_cpf     atleta.cpf%type;
+  v_salario atleta.salario%type;
+  CURSOR c1 IS SELECT id, nome, cpf, salario FROM ATLETA;
+
+BEGIN
+  -- Seleciona e imprime a m�dia salarial
+  SELECT AVG(salario) INTO v_media FROM atleta;
+  DBMS_OUTPUT.PUT_LINE('M�dia salarial dos atletas: ' || TO_CHAR(v_media,'$999,990.00'));
+   
+  -- Percorre o cursor comparando com a m�dia salarial
+  OPEN c1;
+  LOOP
+    FETCH c1 INTO v_id, v_nome, v_cpf, v_salario;
+    EXIT WHEN c1%NOTFOUND;
+    IF v_salario > v_media THEN
+      DBMS_OUTPUT.PUT_LINE('Atleta de ID ' || v_id || ', nome ' || v_nome ||
+        ', CPF ' || v_cpf || ', sal�rio ' || v_salario ||
+        ' ganha MAIS que a m�dia salarial dos atletas.');
+    ELSIF v_salario < v_media THEN
+      DBMS_OUTPUT.PUT_LINE('Atleta de ID ' || v_id || ', nome ' || v_nome ||
+        ', CPF ' || v_cpf || ', sal�rio ' || v_salario ||
+        ' ganha MENOS que a m�dia salarial dos atletas.');
+    ELSE
+      DBMS_OUTPUT.PUT_LINE('Atleta de ID ' || v_id || ', nome ' || v_nome ||
+        ', CPF ' || v_cpf || ', sal�rio ' || v_salario ||
+        ' ganha igual � m�dia salarial dos atletas.');
+    END IF;
+  END LOOP;
+  CLOSE c1;
+END;
 
 
 /* 2. Adapte o exercício 1, só que agora verifique se os atletas
 ganham acima ou não da média salarial do clube a que
 pertencem.*/
+DECLARE
+  v_media  number;
+  CURSOR c_atl IS
+    select id, nome, cpf, salario, id_clube from atleta where id_clube is not null;
+BEGIN
+  FOR r_atl IN c_atl LOOP
+    SELECT avg(salario) INTO v_media FROM atleta WHERE id_clube = r_atl.id_clube;
+    DBMS_OUTPUT.PUT_LINE('M�dia Salarial do Clube: ' || round(v_media,2));
 
+    IF r_atl.salario > v_media THEN
+      DBMS_OUTPUT.PUT_LINE('ID: ' || r_atl.id || ', Nome: ' || r_atl.nome || ', CPF: ' 
+       || r_atl.cpf || ', Sal�rio: ' || r_atl.salario || ', Ganha MAIS que a m�dia do clube');
+    ELSIF r_atl.salario < v_media THEN
+      DBMS_OUTPUT.PUT_LINE('ID: ' || r_atl.id || ', Nome: ' || r_atl.nome || ', CPF: ' 
+       || r_atl.cpf || ', Sal�rio: ' || r_atl.salario || ', Ganha MENOS que a m�dia do clube');
+    ELSE
+      DBMS_OUTPUT.PUT_LINE('ID: ' || r_atl.id || ', Nome: ' || r_atl.nome || ', CPF: ' 
+       || r_atl.cpf || ', Sal�rio: ' || r_atl.salario || ', Ganha IGUAL � m�dia do clube');
+    END IF;
+  END LOOP;
+END;
 
 
 /*3. Escreva um programa que inverta os salários dos atletas
 Ringo Vidgeon e Merwyn Sivills. No final, exiba uma
 mensagem informando que a troca foi feita.*/
-
+DECLARE
+  v_sal_a1  ATLETA.SALARIO%TYPE;
+  v_sal_a2  ATLETA.SALARIO%TYPE;
+BEGIN
+  -- Recupera os sal�rios atuais
+  SELECT salario INTO v_sal_a1 FROM atleta WHERE nome = 'Ringo Vidgeon';
+  SELECT salario INTO v_sal_a2 FROM atleta WHERE nome = 'Merwyn Sivills';
+  DBMS_OUTPUT.PUT_LINE('Salario de Ringo Vidgeon: ' || v_sal_a1);
+  DBMS_OUTPUT.PUT_LINE('Salario de Merwyn Sivills: ' || v_sal_a2);
+  -- Atualiza os sal�rios
+  UPDATE atleta SET salario = v_sal_a2 WHERE nome = 'Ringo Vidgeon';
+  UPDATE atleta SET salario = v_sal_a1 WHERE nome = 'Merwyn Sivills'; 
+  DBMS_OUTPUT.PUT_LINE('Troca realizada com sucesso!');
+  -- Lista os sal�rios atualizados
+  SELECT salario INTO v_sal_a1 FROM atleta WHERE nome = 'Ringo Vidgeon';
+  SELECT salario INTO v_sal_a2 FROM atleta WHERE nome = 'Merwyn Sivills';
+  DBMS_OUTPUT.PUT_LINE('Salario de Ringo Vidgeon: ' || v_sal_a1);
+  DBMS_OUTPUT.PUT_LINE('Salario de Merwyn Sivills: ' || v_sal_a2);
+END;
 
 
 /*4. Escreva um programa que atualize o salário e endereço do
 atleta de ID 15 com os dados do atleta cujo nome comece
 com Grace. Se não houver nenhuma Grace, o salário deve ser
 o salário médio dos atletas, e o endereço deve ser nulo.*/
+DECLARE
+  CURSOR c_atl IS SELECT salario, endereco FROM atleta WHERE nome like 'Grace%';
+  v_sal atleta.salario%TYPE;
+  v_end atleta.endereco%TYPE;
+  v_media NUMBER;
+BEGIN
+  OPEN c_atl;
+  FETCH c_atl INTO v_sal, v_end;
+  IF c_atl%NOTFOUND THEN
+    SELECT avg(salario) INTO v_media FROM atleta;
+    UPDATE atleta SET salario = v_media, endereco = null
+     WHERE id = 15;
+  ELSE
+    UPDATE atleta SET salario = v_sal, endereco = v_end
+     WHERE id = 15;
+  END IF;
+  CLOSE c_atl;
+  DBMS_OUTPUT.PUT_LINE('Dados atualizados com sucesso!');
+END;
 
+select id, nome, salario, endereco from atleta where id = 15 Or nome like 'Grace%';
+
+-- Resolvendo sem cursor
+DECLARE
+    v_sal atleta.salario%TYPE;
+    v_end atleta.endereco%TYPE;
+    v_media NUMBER;
+BEGIN
+    SELECT salario, endereco INTO v_sal, v_end
+      FROM atleta WHERE nome like 'Grace%';
+    
+    UPDATE atleta SET salario = v_sal, endereco = v_end
+     WHERE id = 15;
+    DBMS_OUTPUT.PUT_LINE('Atleta encontrado. Dados atualizados com sucesso!');
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        SELECT avg(salario) INTO v_media FROM atleta;
+    
+        UPDATE atleta SET salario = v_media, endereco = null
+         WHERE id = 15;
+        
+        DBMS_OUTPUT.PUT_LINE('Atleta n�o encontrado. Dados atualizados com sucesso!');
+    
+    WHEN TOO_MANY_ROWS THEN
+        DBMS_OUTPUT.PUT_LINE('H� mais de um atleta com o nome selecionado!');
+    
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Erro : ' || sqlerrm);
+END;
 
 
 /*5. Faça um programa que liste os centros de treinamento de cada clube, conforme o modelo
@@ -1001,6 +1147,20 @@ Centros de Treinamento do Clube 6 - Bamity Team
  Cidade: Atlanta, UF: GA
  Cidade: Philadelphia, UF: PA
  */
- 
+ DECLARE
+  v_aux  NUMBER := -1;
+  CURSOR c_clube IS 
+    SELECT c.id, c.nome, ct.*
+      FROM clube c JOIN centro_treinamento ct ON c.id = ct.id_clube
+     ORDER BY c.id;
+BEGIN
+  FOR r_clube in c_clube LOOP
+    if v_aux <> r_clube.id then
+      DBMS_OUTPUT.PUT_LINE('CTs do clube: ' || r_clube.id || ' - ' || r_clube.nome);
+    end if;
+    DBMS_OUTPUT.PUT_LINE('  Cidade: ' || r_clube.cidade || ', UF: ' || r_clube.uf);
+    v_aux := r_clube.id;
+  END LOOP;
+END;
  
  
